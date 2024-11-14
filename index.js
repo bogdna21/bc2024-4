@@ -1,8 +1,7 @@
-const { Command } = require('commander');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-
+const { Command } = require('commander');
 const program = new Command();
 
 program
@@ -11,12 +10,26 @@ program
   .requiredOption('-c, --cache <path>', 'cache directory');
 
 program.parse(process.argv);
-
 const options = program.opts();
+const server = http.createServer(async (req, res) => {
+  const code = path.basename(req.url);
+  const cacheFile = path.join(options.cache, `${code}.jpg`);
 
-const server = http.createServer((req, res) => {
-  res.writeHead(200, { 'Content-Type': 'text/plain' });
-  res.end('Server is running');
+  try {
+    if (req.method === 'GET') {
+      const file = await fs.promises.readFile(cacheFile);
+      res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+      res.end(file);
+    } else {
+      res.writeHead(405);
+      res.end('Method not allowed');
+    }
+  } catch (error) {
+    if (!res.headersSent) {
+      res.writeHead(404);
+    }
+    res.end('Not Found');
+  }
 });
 
 server.listen(options.port, options.host, () => {
