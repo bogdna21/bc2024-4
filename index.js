@@ -28,6 +28,10 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(201, { 'Content-Type': 'text/plain' });
         res.end('Image cached');
       });
+    } else if (req.method === 'DELETE') {
+      await fs.promises.unlink(cacheFile);
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('Image deleted');
     } else {
       res.writeHead(405);
       res.end('Method not allowed');
