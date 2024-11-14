@@ -20,6 +20,14 @@ const server = http.createServer(async (req, res) => {
       const file = await fs.promises.readFile(cacheFile);
       res.writeHead(200, { 'Content-Type': 'image/jpeg' });
       res.end(file);
+    } else if (req.method === 'PUT') {
+      const fileData = [];
+      req.on('data', chunk => fileData.push(chunk));
+      req.on('end', async () => {
+        await fs.promises.writeFile(cacheFile, Buffer.concat(fileData));
+        res.writeHead(201, { 'Content-Type': 'text/plain' });
+        res.end('Image cached');
+      });
     } else {
       res.writeHead(405);
       res.end('Method not allowed');
